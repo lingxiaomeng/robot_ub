@@ -1,3 +1,3 @@
 import Action
 
-Action.action("up stair",1)
+Action.action("left tiny", 1)
