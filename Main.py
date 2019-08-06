@@ -22,7 +22,7 @@ def has_red(results_1):
                 y = rect1[1]
                 w = rect1[2]
                 h = rect1[3]
-                if h >= 310:
+                if h >= 312:
                     return 1
                 elif h <= 100:
                     return 2
@@ -41,7 +41,7 @@ while 1:
     forward = False
     camera.capture("tmp_frame.jpg")
     frame = cv2.imread("tmp_frame.jpg")
-    results = color_detection.getcolor(frame)
+    results = color_detection.get_color(frame)
     if has_yellow(results):
         flag = 1
         print "find yellow"
@@ -64,7 +64,7 @@ while 1:
     forward = False
     camera.capture("tmp_frame.jpg")
     frame = cv2.imread("tmp_frame.jpg")
-    results = color_detection.getcolor(frame)
+    results = color_detection.get_color(frame)
     num = has_red(results)
     if num == 1 and flag == 0:
         print "find red start up stair"
@@ -72,10 +72,11 @@ while 1:
         Action.action("up stair", 1)
         Action.action("left tiny", 1)
         flag = 1
+        break
     elif num == 1 and flag == 1:
         print "find red forward"
     elif (num == 0 or num == 2) and flag == 0:
-        Action.action("for", 2)
+        Action.action("for", 1)
         print "not find red start forward"
     elif num == 3 and flag == 0:
         Action.action("for", 1)
@@ -83,3 +84,5 @@ while 1:
     elif num == 0 and flag == 1:
         print "not find red start down stair"
         flag = 2
+
+Action.end()
