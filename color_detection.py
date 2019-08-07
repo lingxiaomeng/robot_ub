@@ -41,17 +41,19 @@ def get_color(frame):
         mask = cv2.inRange(hsv, color_min, color_max)
         res = cv2.bitwise_and(frame, frame, mask=mask)
         # cv2.imwrite("res.jpg", res)
-        blured = cv2.blur(res, (3, 3))
+        blured = cv2.blur(res, (5, 5))
         ret, bright = cv2.threshold(blured, 10, 255, cv2.THRESH_BINARY)
         gray = cv2.cvtColor(bright, cv2.COLOR_BGR2GRAY)
-        # cv2.imwrite("gray.jpg", gray)
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
+        cv2.imwrite("gray.jpg", gray)
+        # gray = cv2.fastNlMeansDenoising(gray)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))
         opened = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
         cv2.imwrite("opened.jpg", gray)
         closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel)
         cv2.imwrite("closed.jpg", closed)
 
-        _, contours, hierarchy = cv2.findContours(gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        _, contours, hierarchy = cv2.findContours(gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
         # print contours
         cv2.drawContours(res, contours, -1, (0, 0, 255), 3)
         number = len(contours)

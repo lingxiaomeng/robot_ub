@@ -108,6 +108,7 @@ while 1:
     if num == 1 and flag == 0:
         print "find red start up stair"
         Action.action("for", 1)
+        Action.action("for", 1)
         Action.action("up stair", 1)
         Action.action("left tiny", 1)
         flag = 1
@@ -115,14 +116,21 @@ while 1:
     elif num == 1 and flag == 1:
         print "find red forward"
         Action.action("for", 1)
+        Action.action("for", 1)
+
     elif (num == 0 or num == 2) and flag == 0:
         Action.action("for", 1)
+        Action.action("for", 1)
+
         print "not find red start forward"
     elif num == 3 and flag == 0:
         Action.action("for", 1)
+        Action.action("for", 1)
+
         print "not find red start forward"
     elif num == 0 and flag == 1:
         print "not find red start down stair"
+        Action.action("for", 1)
         Action.action("down_stair", 1)
         flag = 2
         break
@@ -135,12 +143,13 @@ while 1:
     results = color_detection.get_color(frame)
     has = has_black(results)
     if has:
-        Action.action("left tiny", 1)
-        Action.action("left tiny", 1)
-        Action.action("left tiny", 1)
+        Action.action("left big", 1)
+        Action.action("left big", 1)
+        Action.action("left big", 1)
         print "turn left"
         break
     else:
+        Action.action("for", 1)
         Action.action("for", 1)
 
 flag = 0
@@ -152,13 +161,30 @@ while 1:
     cen = find_green(results)
     if cen != -1:
         if cen < 155:
-            Action.action("right", 1)
+            print "right"
+            Action.action("right_dis", 1)
         elif cen > 165:
-            Action.action("left", 1)
+            print "left"
+            Action.action("left_dis", 1)
         else:
+            print "start for lone"
             Action.action("for", 1)
+            Action.action("for", 1)
+            Action.action("for", 1)
+            Action.action("for", 1)
+            Action.action("for", 1)
+            Action.action("for", 1)
+            Action.action("for", 1)
+            Action.action("for", 1)
+            while 1:
+                Action.action("for", 1)
+                cen = find_green(results)
+                if cen == -1:
+                    print "no green"
+                    break
             break
     else:
+        Action.action("for", 1)
         Action.action("for", 1)
 
 Action.end()
