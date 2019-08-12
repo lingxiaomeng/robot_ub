@@ -31,6 +31,41 @@ print(cv2.__version__)
 # closed = cv2.imread("closed.jpg")
 # _, contours, hierarchy = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 # print contours
+def get_crossing(xa, ya, xb, yb, xc, yc, xd, yd):
+    a = np.matrix(
+        [
+            [xb - xa, -(xd - xc)],
+            [yb - ya, -(yd - yc)]
+        ]
+    )
+    delta = np.linalg.det(a)
+    if np.fabs(delta) < 1e-6:
+        print(delta)
+        return [0]
+    c = np.matrix(
+        [
+            [xc - xa, -(xd - xc)],
+            [yc - ya, -(yd - yc)]
+        ]
+    )
+    d = np.matrix(
+        [
+            [xb - xa, xc - xa],
+            [yb - ya, yc - ya]
+        ]
+    )
+    lamb = np.linalg.det(c) / delta
+    miu = np.linalg.det(d) / delta
+    if 1 >= lamb >= 0 and 0 <= miu <= 1:
+        x = xc + miu * (xd - xc)
+        y = yc + miu * (yd - yc)
+        return [1, x, y]
+        # if 320 >= x >= 0 and 320 >= y >= 0:
+        #     return [1, x, y]
+        # else:
+        #     return 0
+    else:
+        return [0]
 
 
 def get_color(frame):
@@ -49,21 +84,21 @@ def get_color(frame):
         # cv2.imwrite(name + "_edges.jpg", edges)
         lines = cv2.HoughLines(edges, 1, np.pi / 180, 60)
         x = []
-        print lines
+        # print lines
         if lines is not None:
             for i in range(0, len(lines)):
                 rho, theta = lines[i][0][0], lines[i][0][1]
                 x.append([rho, theta])
-                a = np.cos(theta)
-                b = np.sin(theta)
-                x0 = a * rho
-                y0 = b * rho
-                x1 = int(x0 + 1000 * (-b))
-                y1 = int(y0 + 1000 * (a))
-                x2 = int(x0 - 1000 * (-b))
-                y2 = int(y0 - 1000 * (a))
-                cv2.line(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
-            cv2.imwrite(name + "hough_result.jpg", frame)
+                # a = np.cos(theta)
+                # b = np.sin(theta)
+                # x0 = a * rho
+                # y0 = b * rho
+                # x1 = int(x0 + 1000 * (-b))
+                # y1 = int(y0 + 1000 * a)
+                # x2 = int(x0 - 1000 * (-b))
+                # y2 = int(y0 - 1000 * a)
+                # cv2.line(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            # cv2.imwrite(name + "hough_result.jpg", frame)
             start = time()
             print 'Runing scikit-learn implementation...'
             db = DBSCAN(eps=10, min_samples=1).fit(x)
@@ -72,7 +107,7 @@ def get_color(frame):
             print end - start
             n_clusters_ = len(set(skl_labels)) - (1 if -1 in skl_labels else 0)  # 获取分簇的数目
             print('分簇的数目: %d' % n_clusters_)
-            print skl_labels
+            # print skl_labels
             dbscan_result = []
             for i in range(n_clusters_):
                 one_cluster = []
@@ -86,7 +121,7 @@ def get_color(frame):
                 rho = rho / len(one_cluster)
                 theta = theta / len(one_cluster)
                 dbscan_result.append([rho, theta])
-                print(one_cluster)
+                # print(one_cluster)
             for (rho, theta) in dbscan_result:
                 a = np.cos(theta)
                 b = np.sin(theta)
@@ -97,6 +132,35 @@ def get_color(frame):
                 x2 = int(x0 - 1000 * (-b))
                 y2 = int(y0 - 1000 * (a))
                 cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            points = []
+            for i in range(len(dbscan_result) - 1):
+                for j in range(i + 1, len(dbscan_result)):
+                    rho = dbscan_result[i][0]
+                    theta = dbscan_result[i][1]
+                    a = np.cos(theta)
+                    b = np.sin(theta)
+                    x0 = a * rho
+                    y0 = b * rho
+                    x1 = int(x0 + 1000 * (-b))
+                    y1 = int(y0 + 1000 * (a))
+                    x2 = int(x0 - 1000 * (-b))
+                    y2 = int(y0 - 1000 * (a))
+
+                    rho = dbscan_result[j][0]
+                    theta = dbscan_result[j][1]
+                    a = np.cos(theta)
+                    b = np.sin(theta)
+                    x0 = a * rho
+                    y0 = b * rho
+                    x3 = int(x0 + 1000 * (-b))
+                    y3 = int(y0 + 1000 * a)
+                    x4 = int(x0 - 1000 * (-b))
+                    y4 = int(y0 - 1000 * a)
+                    point = get_crossing(x1, y1, x2, y2, x3, y3, x4, y4)
+                    if point[0] == 1:
+                        points.append(point)
+
+            print points
             cv2.imwrite(name + "_after_dbscan_result.jpg", frame)
 
             # plt.plot(one_cluster[:, 0], one_cluster[:, 1], 'o')

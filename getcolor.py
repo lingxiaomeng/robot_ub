@@ -37,7 +37,8 @@ def has_black(results_1):
             print block
     return False
 
-frame = cv2.imread('257.jpg')
+
+frame = cv2.imread('calibresult.png')
 # frame = cv2.resize(frame, (640, 480))
 a = color_detection.get_color(frame)
 print(a)
