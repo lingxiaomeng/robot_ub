@@ -50,13 +50,14 @@ def has_black(results_1):
 
 
 if __name__ == "__main__":
-    frame = cv2.imread('./photo2/12.jpg')
+    frame = cv2.imread('./257.jpg')
+    # print frame
     h, w = frame.shape[:2]
     newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
     dst = cv2.undistort(frame, mtx, dist, None, newcameramtx)
     x, y, w, h = roi
     dst = dst[y:y + h, x:x + w]
-    a = color_detection.black_lines_detection(dst)
+    a = color_detection.get_color(frame)
     print(a)
     # c = find_green(a)
     # print c

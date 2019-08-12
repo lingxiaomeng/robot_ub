@@ -9,12 +9,10 @@ from sklearn.cluster import DBSCAN
 
 mtx = np.array([[195.2195786600618, 0, 243.8702905959468],
                 [0, 187.1211872269851, 214.2502222927143],
-                [0, 0, 1]
-                ]
-               )
+                [0, 0, 1]])
 dist = np.array(
     [[-0.1395365798775013, 0.01847486190780475, -0.006487336053286973, 0.002973805775375551, -0.0006586561922608219]])
-# define HSV color value
+
 red_min = np.array([0, 128, 46])
 red_max = np.array([5, 255, 255])
 red2_min = np.array([156, 128, 46])
@@ -35,9 +33,6 @@ COLOR_ARRAY = [[red_min, red_max, 'red'], [red2_min, red2_max, 'red'], [green_mi
 print(cv2.__version__)
 
 
-# closed = cv2.imread("closed.jpg")
-# _, contours, hierarchy = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-# print contours
 def get_crossing(xa, ya, xb, yb, xc, yc, xd, yd):
     a = np.matrix(
         [
@@ -224,94 +219,41 @@ def black_lines_detection(frame):
             exit(1)
         print points
         cv2.imwrite("black_after_db_scan_result.jpg", frame)
-
-        # plt.plot(one_cluster[:, 0], one_cluster[:, 1], 'o')
-
-    # # gray = cv2.fastNlMeansDenoising(gray)
-    # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))
-    # opened = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
-    # cv2.imwrite("opened.jpg", gray)
-    # closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel)
-    # cv2.imwrite("closed.jpg", closed)
-    # _, contours, hierarchy = cv2.findContours(gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-
-    # print contours
-    # cv2.drawContours(res, contours, -1, (0, 0, 255), 3)
-    # number = len(contours)
-    # if number >= 1:
-    #      for i in range(0, number):
-    #         area = cv2.contourArea(contours[i])
-    #         x, y, w, h = cv2.boundingRect(contours[i])
-    #         if area >= 500 or w >= 50 or h >= 50:
-    #             cv2.rectangle(res, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    #             rects_results.append([x, y, w, h])
-    #     cv2.imwrite(name + "result.jpg", res)
-    #     if len(rects_results) > 0:
-    #         sub_results.append(name)
-    #         sub_results.append(rects_results)
-    #         result.append(sub_results)
-
     return result
 
 
-def find_green(results_1):
-    for color1, rects1 in results_1:
-        if color1 == 'green':
-            maxw = 0
-            index = 0
-            for i in range(len(rects1)):
-                if rects1[i][2] >= maxw:
-                    index = i
-            if rects1[index][2] >= 60:
-                center = rects1[index][0] + rects1[index][2] / 2
-                return center
-    return -1
-
-
-def inline(rect, block1):
-    for i in range(len(block1)):
-        r = block1[i]
-        if abs(r[1] - rect[1]) < 5 or abs(r[1] - rect[1] + r[3] - rect[3]) < 5:
-            return i
-    return -1
-
-
-def has_black(results_1):
-    for color1, rects1 in results_1:
-        if color1 == 'black':
-            block = []
-            for rect in rects1:
-                line = inline(rect, block)
-                if len(block) == 0 or line == -1:
-                    block.append(rect)
-                else:
-                    block[line][2] += rect[2]
-            print block
-            for rect in block:
-                if rect[2] >= 160:
-                    return True
-    return False
-
-
-def has_yellow(results_1):
-    for color1, rects1 in results_1:
-        if color1 == 'yellow' and len(rects1) >= 1:
-            return True
-    return False
-
-
-def has_red(results_1):
-    for color1, rects1 in results_1:
-        if color1 == 'red' and len(rects1) >= 1:
-            for rect1 in rects1:
-                x = rect1[0]
-                y = rect1[1]
-                w = rect1[2]
-                h = rect1[3]
-                if h >= 312:
-                    return 1
-                elif h <= 100:
-                    return 2
-                else:
-                    return 3
-    return 0
+def get_color(frame):
+    result = dict()
+    result['red'] = []
+    result['green'] = []
+    result['blue'] = []
+    result['yellow'] = []
+    result['black'] = []
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    # print hsv
+    for [color_min, color_max, name] in COLOR_ARRAY:
+        mask = cv2.inRange(hsv, color_min, color_max)
+        gray = cv2.GaussianBlur(mask, (5, 5), 0)
+        # # print color_min, color_max
+        # mask = cv2.inRange(hsv, color_min, color_max)
+        # res = cv2.bitwise_and(frame, frame, mask=mask)
+        # blured = cv2.blur(res, (3, 3))
+        # ret, bright = cv2.threshold(blured, 10, 255, cv2.THRESH_BINARY)
+        # gray = cv2.cvtColor(bright, cv2.COLOR_BGR2GRAY)
+        # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
+        # opened = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
+        # cv2.imwrite("opened.jpg", gray)
+        # closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel)
+        # cv2.imwrite("closed.jpg", closed)
+        _, contours, hierarchy = cv2.findContours(gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        cv2.drawContours(frame, contours, -1, (0, 0, 255), 3)
+        number = len(contours)
+        if number >= 1:
+            for i in range(0, number):
+                area = cv2.contourArea(contours[i])
+                x, y, w, h = cv2.boundingRect(contours[i])
+                if area >= 500 or w >= 50 or h >= 50:
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    result[name].append([x, y, w, h])
+            cv2.imwrite("result.jpg", frame)
+    return result
