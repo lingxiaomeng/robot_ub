@@ -80,7 +80,7 @@ while 1:
     forward = False
     camera.capture("tmp_frame.jpg")
     frame = cv2.imread("tmp_frame.jpg")
-    results = color_detection.get_color(frame)
+    results = color_detection.black_lines_detection(frame)
     if has_yellow(results):
         flag = 1
         print "find yellow"

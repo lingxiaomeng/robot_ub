@@ -1,5 +1,16 @@
 import cv2
+import numpy as np
+
 import color_detection
+
+mtx = np.array([[195.2195786600618, 0, 243.8702905959468],
+                [0, 187.1211872269851, 214.2502222927143],
+                [0, 0, 1]
+                ]
+               )
+dist = np.array(
+    [[-0.1395365798775013, 0.01847486190780475, -0.006487336053286973, 0.002973805775375551,
+      -0.0006586561922608219]])
 
 
 def inline(rect1, block1):
@@ -38,14 +49,19 @@ def has_black(results_1):
     return False
 
 
-frame = cv2.imread('calibresult.png')
-# frame = cv2.resize(frame, (640, 480))
-a = color_detection.get_color(frame)
-print(a)
-c = find_green(a)
-print c
-for (name, rects) in a:
-    print(name)
-    print(len(rects))
-    for rect in rects:
-        print(rect)
+if __name__ == "__main__":
+    frame = cv2.imread('./photo2/12.jpg')
+    h, w = frame.shape[:2]
+    newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
+    dst = cv2.undistort(frame, mtx, dist, None, newcameramtx)
+    x, y, w, h = roi
+    dst = dst[y:y + h, x:x + w]
+    a = color_detection.black_lines_detection(dst)
+    print(a)
+    # c = find_green(a)
+    # print c
+    # for (name, rects) in a:
+    #     print(name)
+    #     print(len(rects))
+    #     for rect in rects:
+    #         print(rect)
