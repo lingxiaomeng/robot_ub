@@ -20,5 +20,5 @@ dst = cv2.undistort(imge, mtx, dist, None, newcameramtx)
 
 # crop the image
 x, y, w, h = roi
-dst = dst[y:y + h, x:x + w]
-cv2.imwrite('calibresult.png', dst)
+# dst = dst[y:y + h, x:x + w]
+cv2.imwrite('calibresult1.png', dst)

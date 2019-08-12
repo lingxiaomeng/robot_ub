@@ -148,7 +148,15 @@ def black_lines_detection(frame):
             y2 = int(y0 - 1000 * a)
             cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
         points = []
-
+        if len(result['v_lines']) == 1:
+            rho = result['v_lines'][0][0]
+            theta = result['v_lines'][0][1]
+            if theta > 1.57:
+                result['angle'].append(
+                    [0, 0, 0])
+            else:
+                result['angle'].append(
+                    [0, 480, 0])
         if len(result['v_lines']) == 2:
             rho = result['v_lines'][0][0]
             theta = result['v_lines'][0][1]
@@ -181,7 +189,8 @@ def black_lines_detection(frame):
                 result['bot_point'] = bot_point
                 delta_x = result['top_point'][0] - result['bot_point'][0]
                 delta_y = result['top_point'][1] - result['bot_point'][1]
-                result['angle'].append([delta_x / delta_y, delta_x, delta_y])
+                result['angle'].append(
+                    [delta_x / delta_y, (bot_point1[1] + bot_point2[1]) / 2, (bot_point1[2] + bot_point2[2]) / 2])
 
         for i in range(len(dbscan_result) - 1):
             for j in range(i + 1, len(dbscan_result)):
