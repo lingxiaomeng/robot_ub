@@ -13,11 +13,13 @@ import RobotApi
 import picamera
 from picamera import PiCamera
 from picamera.array import PiRGBArray
+
 import color_detection
 
 # ---------------------------------
 up_stair = 0
 on_green = 0
+gouhe = 0
 # ------------------------------------
 RobotApi.ubtRobotInitialize()
 # ---------------------------------
@@ -97,12 +99,32 @@ def find_max_color():
 
 
 def judge(frame):
-    global up_stair, on_green
+    global up_stair, on_green, gouhe
     color_result = color_detection.get_color(frame)
     # 返回红、黄、绿
     red = color_result['red']
     green = color_result['green']
     yellow = color_result['yellow']
+    if gouhe == 1:
+        print "前面是沟壑"
+        black_result = color_detection.black_lines(frame=frame)
+        h_lines = black_result['h_lines']
+        v_lines = black_result['v_lines']
+        if len(h_lines) == 2:
+            print "h_lines2"
+        return
+
+    if up_stair == 1:
+        if len(red) > 0:
+            print "在楼梯上"
+            RobotApi.ubtStartRobotAction("first", 1)
+            RobotApi.ubtStartRobotAction("for", 1)  # 待调
+        else:
+            print "no red"
+            RobotApi.ubtStartRobotAction("down_stair", 1)
+            up_stair = 2
+
+        return
 
     if len(red) > 0 and up_stair == 0:
         maxred = find_max_area(red)
@@ -118,48 +140,38 @@ def judge(frame):
             else:
                 print "no stair forward"
                 ret = RobotApi.ubtStartRobotAction("for", 2)
-    if up_stair == 1:
-        if len(red) > 0:
-            print "在楼梯上"
-            RobotApi.ubtStartRobotAction("first", 1)
-            RobotApi.ubtStartRobotAction("for", 1)  # 待调
-        else:
-            print "no red"
-            RobotApi.ubtStartRobotAction("down_stair", 1)
-            up_stair = 2
 
-        return
     # 矫正方位
     if len(green) > 0 and on_green == 0:
 
         max_green = find_max_area(green)
         print max_green
         print "find green"
-        if 120 >= max_green[1] + max_green[3] >= 0:
+        green_lines = color_detection.green_lines(frame)
+        if 150 >= max_green[1] + max_green[3] >= 0:
             print "go for green"
             # RobotApi.ubtStartRobotAction("vertical", 1)
             # while 矫正方位，矫正位置
             RobotApi.ubtStartRobotAction("first", 1)
-            RobotApi.ubtStartRobotAction("for", 3)  # 待调
-        elif 220 >= max_green[1] + max_green[3] > 120:
+            RobotApi.ubtStartRobotAction("for", 1)  # 待调
+        elif 220 >= max_green[1] + max_green[3] > 150:
             print "调整"
             # while 矫正方位，矫正位置
-            green_lines = color_detection.green_lines(frame)
             if inline(green_lines):
                 RobotApi.ubtStartRobotAction("for", 1)  # 待调
         elif max_green[1] + max_green[3] > 220:
-            print "调整"
+            print "上绿色"
+            on_green = 1
             # while 矫正方位，矫正位置
-            green_lines = color_detection.green_lines(frame)
-            if inline(green_lines):
+            if in_green(green_lines):
                 RobotApi.ubtStartRobotAction("for", 1)  # 待调
         return
     if on_green == 1:
         print "在绿色上"
         if len(green) > 0:
-            green_lines = color_detection.green_lines(frame)
-            if in_green(green_lines):
-                RobotApi.ubtStartRobotAction("for", 1)  # 待调
+            # green_lines = color_detection.green_lines(frame)
+            # if in_green(green_lines):
+            RobotApi.ubtStartRobotAction("for", 1)  # 待调
         else:
             print "绿色完成"
             RobotApi.ubtStartRobotAction("for", 1)  # 待调
@@ -197,20 +209,22 @@ def judge(frame):
     #     return
     black_result = color_detection.black_lines(frame=frame)
     h_lines = black_result['h_lines']
-
+    v_lines = black_result['v_lines']
     if len(h_lines) == 1 and h_lines[0][0] <= 120:
         RobotApi.ubtStartRobotAction("first", 1)
         RobotApi.ubtStartRobotAction("for", 1)
         print "发现横线"
         return
-    if len(h_lines) == 1 and h_lines[0][0] > 120:
-        RobotApi.ubtStartRobotAction("vertical", 1)
-        # while 矫正方位，矫正位置
+    if len(h_lines) == 1 and h_lines[0][0] > 120 and len(v_lines) <= 1:
         RobotApi.ubtStartRobotAction("Left", 1)
         print "左转"
         return
-    if len(h_lines) == 2:
+    if len(h_lines) == 2 and len(v_lines) >= 2 and gouhe == 0:
         print "沟壑"
+        gouhe = 1
+        return
+
+
         # RobotApi.ubtStartRobotAction("first", 1)
         # RobotApi.ubtStartRobotAction("for", 2)  # 待调
         # while True:
@@ -280,5 +294,4 @@ if __name__ == "__main__":
 
 # ----------------------------------------------------------
 RobotApi.ubtRobotDisconnect("SDK", "1", gIPAddr)
-
 RobotApi.ubtRobotDeinitialize()

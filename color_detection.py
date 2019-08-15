@@ -1,11 +1,10 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-from time import time
-
 import cv2
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from sklearn.cluster import DBSCAN
+from time import time
 
 mtx = np.array([[195.2195786600618, 0, 243.8702905959468],
                 [0, 187.1211872269851, 214.2502222927143],
@@ -278,7 +277,7 @@ def get_color(frame):
                 if w >= 75 or h >= 75:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                     result[name].append([x, y, w, h, area])
-                    cv2.imwrite("result1.jpg", frame)
+                    cv2.imwrite(name + "_result1.jpg", frame)
             # cv2.imshow('frame', frame)
             # k = cv2.waitKey(500)
             # if k == 27:
@@ -342,17 +341,20 @@ def green_lines(frame):
     cv2.imwrite("black_gray.jpg", gray)
     edges = cv2.Canny(gray, 75, 225, apertureSize=3)
     # cv2.imwrite(name + "_edges.jpg", edges)
-    lines = cv2.HoughLines(edges, 1, np.pi / 180, 60)
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 45)
     x = []
     if lines is not None:
         for i in range(0, len(lines)):
             rho, theta = lines[i][0][0], lines[i][0][1]
+            if rho <= 0:
+                rho *= -1
+                theta = np.pi - theta
             x.append([rho, theta])
             # cv2.line(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
         # cv2.imwrite(name + "hough_result.jpg", frame)
         start = time()
         print 'Running scikit-learn implementation...'
-        db = DBSCAN(eps=30, min_samples=1).fit(x)
+        db = DBSCAN(eps=10, min_samples=1).fit(np.array(x))
         skl_labels = db.labels_
         end = time()
         print end - start
