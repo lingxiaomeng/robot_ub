@@ -84,10 +84,12 @@ def inline(result):
             print "turn right"
         cx = result_angle[0][1]
         if cx >= 261.5:
-            RobotApi.ubtStartRobotAction('rightDis', 1)
+            RobotApi.ubtStartRobotAction('right_tiny', 1)
+            RobotApi.ubtStartRobotAction('rightDisTiny', 1)
             print "turn left"
         elif cx <= 181.5:
-            RobotApi.ubtStartRobotAction('leftDis', 1)
+            RobotApi.ubtStartRobotAction('left_tiny', 1)
+            RobotApi.ubtStartRobotAction('leftDisTiny', 1)
             print "turn right"
         return -0.07 < angle < 0.07 and 181.5 <= cx <= 261.5
 
@@ -129,7 +131,7 @@ def judge(frame):
     if len(red) > 0 and up_stair == 0:
         maxred = find_max_area(red)
 
-        if maxred[3] > 50 and up_stair == 0:
+        if maxred[3] > 80 and up_stair == 0:
             if maxred[3] > 205:
                 print "上楼梯"
                 RobotApi.ubtStartRobotAction("for", 2)  # 待调a
@@ -210,13 +212,16 @@ def judge(frame):
     black_result = color_detection.black_lines(frame=frame)
     h_lines = black_result['h_lines']
     v_lines = black_result['v_lines']
-    if len(h_lines) == 1 and h_lines[0][0] <= 120:
-        RobotApi.ubtStartRobotAction("first", 1)
+    if len(h_lines) == 1 and h_lines[0][0] <= 40:
+        # RobotApi.ubtStartRobotAction("first", 1)
         RobotApi.ubtStartRobotAction("for", 1)
         print "发现横线"
+        print h_lines
         return
-    if len(h_lines) == 1 and h_lines[0][0] > 120 and len(v_lines) <= 1:
+    if len(h_lines) == 1 and h_lines[0][0] > 40 and len(v_lines) <= 1:
         RobotApi.ubtStartRobotAction("Left", 1)
+        print h_lines
+
         print "左转"
         return
     if len(h_lines) == 2 and len(v_lines) >= 2 and gouhe == 0:
@@ -251,47 +256,46 @@ def judge(frame):
 
 
 if __name__ == "__main__":
-    if __name__ == "__main__":
-        camera = PiCamera()
-        camera.resolution = (480, 320)
-        camera.framerate = 25
-        flag = 0
-        start = time.time()
-        with picamera.array.PiRGBArray(camera, size=(480, 320)) as output:
-            for frame in camera.capture_continuous(output, format="bgr", use_video_port=True):
-                frame = frame.array
+    camera = PiCamera()
+    camera.resolution = (480, 320)
+    camera.framerate = 25
+    flag = 0
+    start = time.time()
+    with picamera.array.PiRGBArray(camera, size=(480, 320)) as output:
+        for frame in camera.capture_continuous(output, format="bgr", use_video_port=True):
+            frame = frame.array
 
-                if color_detection.find_yellow(frame):
-                    flag = 1
-                    print "find yellow"
-                elif flag == 1:
-                    print "start forward"
-                    RobotApi.ubtStartRobotAction("first", 1)
-                    RobotApi.ubtStartRobotAction("for", 1)
-                    break
-                else:
-                    print "find nothing"
-                end = time.time()
-                if end - start >= 20:
-                    print "time out"
-                    break
-                output.truncate(0)
+            if color_detection.find_yellow(frame):
+                flag = 1
+                print "find yellow"
+            elif flag == 1:
+                print "start forward"
+                RobotApi.ubtStartRobotAction("first", 1)
+                RobotApi.ubtStartRobotAction("for", 1)
+                break
+            else:
+                print "find nothing"
+            end = time.time()
+            if end - start >= 20:
+                print "time out"
+                break
+            output.truncate(0)
 
-        print "pass first"
-        i = 0
-        with picamera.array.PiRGBArray(camera, size=(480, 320)) as output:
-            for frame in camera.capture_continuous(output, format="bgr", use_video_port=True):
-                frame = frame.array
-                frame = color_detection.balanced(frame)
-                # color_detection.cv2.imshow('balanced', frame)
-                # k = color_detection.cv2.waitKey(500)
-                # if k == 27:
-                #     break
-                i += 1
-                if i % 15 == 0:
-                    judge(frame=frame)
-                output.truncate(0)
+    print "pass first"
+    i = 0
+    with picamera.array.PiRGBArray(camera, size=(480, 320)) as output:
+        for frame in camera.capture_continuous(output, format="bgr", use_video_port=True):
+            frame = frame.array
+            # frame = color_detection.balanced(frame)
+            # color_detection.cv2.imshow('balanced', frame)
+            # k = color_detection.cv2.waitKey(500)
+            # if k == 27:
+            #     break
+            i += 1
+            if i % 15 == 0:
+                judge(frame=frame)
+            output.truncate(0)
 
 # ----------------------------------------------------------
-RobotApi.ubtRobotDisconnect("SDK", "1", gIPAddr)
-RobotApi.ubtRobotDeinitialize()
+    RobotApi.ubtRobotDisconnect("SDK", "1", gIPAddr)
+    RobotApi.ubtRobotDeinitialize()

@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import cv2
-import matplotlib.pyplot as plt
+from time import time
+
 import numpy as np
 from sklearn.cluster import DBSCAN
-from time import time
 
 mtx = np.array([[195.2195786600618, 0, 243.8702905959468],
                 [0, 187.1211872269851, 214.2502222927143],
@@ -23,7 +23,7 @@ blue_max = np.array([124, 255, 255])
 yellow_min = np.array([15, 128, 46])
 yellow_max = np.array([34, 255, 255])
 black_min = np.array([0, 0, 0])
-black_max = np.array([180, 255, 30])
+black_max = np.array([180, 255, 46])
 white_min = np.array([0, 0, 70])
 white_max = np.array([180, 30, 255])
 
@@ -99,25 +99,39 @@ def lines_detection(frame, colormin, colormax):
     result['top_point'] = []
     result['angle'] = []
     mask = cv2.inRange(hsv, colormin, colormax)
-    # cv2.imwrite(name + "_mask.jpg", mask)
+    cv2.imwrite("_mask.jpg", mask)
     gray = cv2.GaussianBlur(mask, (5, 5), 0)
     cv2.imwrite("black_gray.jpg", gray)
     edges = cv2.Canny(gray, 75, 225, apertureSize=3)
-    # cv2.imwrite(name + "_edges.jpg", edges)
+    cv2.imwrite("_edges.jpg", edges)
+    cv2.imshow('edge', edges)
     lines = cv2.HoughLines(edges, 1, np.pi / 180, 60)
     x = []
     if lines is not None:
         for i in range(0, len(lines)):
             rho, theta = lines[i][0][0], lines[i][0][1]
+            if rho < 0:
+                rho *= -1
+                theta = theta - np.pi
             x.append([rho, theta])
+            a = np.cos(theta)
+            b = np.sin(theta)
+            # print a, b
+            x0 = a * rho
+            y0 = b * rho
+            x1 = int(x0 + 1000 * (-b))
+            y1 = int(y0 + 1000 * a)
+            x2 = int(x0 - 1000 * (-b))
+            y2 = int(y0 - 1000 * a)
+            cv2.line(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
             # cv2.line(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
         # cv2.imwrite(name + "hough_result.jpg", frame)
         start = time()
-        print 'Running scikit-learn implementation...'
+        # print 'Running scikit-learn implementation...'
         db = DBSCAN(eps=12, min_samples=1).fit(x)
         skl_labels = db.labels_
         end = time()
-        print end - start
+        # print end - start
         n_clusters_ = len(set(skl_labels)) - (1 if -1 in skl_labels else 0)  # 获取分簇的数目
         print('分簇的数目: %d' % n_clusters_)
         # print skl_labels
@@ -230,12 +244,12 @@ def lines_detection(frame, colormin, colormax):
                 point = get_crossing(x1, y1, x2, y2, x3, y3, x4, y4)
                 if point[0] == 1:
                     points.append(point)
-        # cv2.imshow('frame', frame)
-        # k = cv2.waitKey(500)
-        # if k == 27:
-        #     exit(1)
-        # # print points
-        cv2.imwrite("black_after_db_scan_result.jpg", frame)
+    # cv2.imshow('frame', frame)
+    # k = cv2.waitKey(500)
+    # if k == 27:
+    #     exit(1)
+    # print points
+    cv2.imwrite("black_after_db_scan_result.jpg", frame)
     return result
 
 
@@ -348,7 +362,7 @@ def green_lines(frame):
             rho, theta = lines[i][0][0], lines[i][0][1]
             if rho <= 0:
                 rho *= -1
-                theta = np.pi - theta
+                theta = theta - np.pi
             x.append([rho, theta])
             # cv2.line(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
         # cv2.imwrite(name + "hough_result.jpg", frame)

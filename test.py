@@ -1,4 +1,4 @@
 import Action
 
-Action.action("Left", 1)
+Action.action("for", 1)
 

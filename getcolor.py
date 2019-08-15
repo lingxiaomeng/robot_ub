@@ -11,9 +11,9 @@ dist = np.array(
       -0.0006586561922608219]])
 
 if __name__ == "__main__":
-    frame = cv2.imread('result.jpg')
+    frame = cv2.imread('./test/201.jpg')
 
-    a = color_detection.get_color(frame)
+    a = color_detection.black_lines(frame)
     print(a)
     # c = find_green(a)
     #     # print c
