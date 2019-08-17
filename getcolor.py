@@ -1,4 +1,5 @@
 import cv2
+
 import numpy as np
 
 import color_detection
@@ -11,10 +12,13 @@ dist = np.array(
       -0.0006586561922608219]])
 
 if __name__ == "__main__":
-    frame = cv2.imread('./test/201.jpg')
+    frame = cv2.imread('/home/pi/Desktop/test0816/107_balanced.jpg')
+    frame = color_detection.balanced(frame)
+    # a = color_detection.yellow_lines(frame)
+    color = color_detection.edge_lines(frame)
+    print color
 
-    a = color_detection.black_lines(frame)
-    print(a)
+    # print(a)
     # c = find_green(a)
     #     # print c
     #     # for (name, rects) in a:
